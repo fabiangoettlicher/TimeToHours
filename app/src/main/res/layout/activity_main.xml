@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:padding="10dp"
+    tools:context="com.fabian.timetohours.MainActivity">
+
+    <TextView
+        android:id="@+id/tv_von"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Von: "
+        android:layout_alignParentTop="true"
+        android:layout_centerHorizontal="true"/>
+
+    <TimePicker
+        android:id="@+id/tp_von"
+        android:layout_width="match_parent"
+        android:layout_height="200dp"
+        android:layout_below="@id/tv_von"
+        android:layout_centerHorizontal="true"
+        android:timePickerMode="spinner" />
+
+    <TextView
+        android:id="@+id/tv_bis"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Bis: "
+        android:layout_below="@id/tp_von"
+        android:layout_marginTop="10dp"
+        android:layout_centerHorizontal="true"/>
+
+    <TimePicker
+        android:id="@+id/tp_bis"
+        android:layout_width="match_parent"
+        android:layout_height="200dp"
+        android:layout_below="@id/tv_bis"
+        android:layout_centerHorizontal="true"
+        android:timePickerMode="spinner" />
+
+    <TextView
+        android:id="@+id/tv_hours"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Hours: "
+        android:layout_below="@id/tp_bis"
+        android:layout_marginTop="10dp"
+        android:textSize="20sp"
+        android:layout_centerHorizontal="true"/>
+</RelativeLayout>
