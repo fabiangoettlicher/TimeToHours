@@ -2,10 +2,13 @@ package com.fabian.timetohours;
 
 import android.content.SharedPreferences;
 import android.icu.util.Calendar;
+import android.support.annotation.FloatRange;
 import android.support.v4.util.LongSparseArray;
 import android.support.v4.util.TimeUtils;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.TextView;
@@ -18,6 +21,7 @@ import java.sql.Time;
 public class MainActivity extends AppCompatActivity {
 
     private TimePicker mTpVon, mTpBis;
+    private EditText mEtMinus;
     private TextView mTvHours;
     private Calendar cal1, cal2;
     private SharedPreferences sharedPreferences;
@@ -38,6 +42,7 @@ public class MainActivity extends AppCompatActivity {
         mTpVon = (TimePicker) findViewById(R.id.tp_von);
         mTpBis = (TimePicker) findViewById(R.id.tp_bis);
         mTvHours = (TextView) findViewById(R.id.tv_hours);
+        mEtMinus = (EditText) findViewById(R.id.et_minus);
 
         mTpVon.setIs24HourView(true);
         mTpBis.setIs24HourView(true);
@@ -65,6 +70,20 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
+        mEtMinus.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+            }
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+            }
+
+            @Override
+            public void afterTextChanged(Editable s) {
+                getDif();
+            }
+        });
     }
 
     public void getDif() {
@@ -79,8 +98,17 @@ public class MainActivity extends AppCompatActivity {
         Long bis = cal2.getTimeInMillis();
 
         Long dif = bis - von;
-        Float hours = (float)dif/1000/60/60;
-        String sHours = String.format("%.2f", hours);
-        mTvHours.setText(sHours + " Stunden");
+        float hours = (float)dif/1000/60/60;
+        float hoursMinus = 0;
+        if(mEtMinus.getText().length() > 0) {
+            float minus = Float.valueOf(mEtMinus.getText().toString());
+            hoursMinus = hours - minus;
+            String sHours = String.format("%.2f", hours);
+            String sHoursMinus = String.format("%.2f", hoursMinus);
+            mTvHours.setText(sHours + " - " + minus + " = " + sHoursMinus + " Stunden");
+        } else {
+            String sHours = String.format("%.2f", hours);
+            mTvHours.setText(sHours + " Stunden");
+        }
     }
 }
