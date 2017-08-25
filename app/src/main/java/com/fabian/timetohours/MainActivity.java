@@ -1,35 +1,45 @@
 package com.fabian.timetohours;
 
+import android.content.Intent;
 import android.content.SharedPreferences;
+import android.icu.text.SimpleDateFormat;
 import android.icu.util.Calendar;
-import android.support.annotation.FloatRange;
-import android.support.v4.util.LongSparseArray;
-import android.support.v4.util.TimeUtils;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.support.v7.widget.Toolbar;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.view.View;
-import android.widget.EditText;
-import android.widget.TextView;
-import android.widget.TimePicker;
+import android.view.Window;
+import android.view.WindowManager;
+import android.widget.*;
 
 import com.crashlytics.android.Crashlytics;
-import io.fabric.sdk.android.Fabric;
-import java.sql.Time;
+import com.fabian.timetohours.Data.TrackingEntry;
+import com.fabian.timetohours.Utils.ObjectSerializer;
 
-public class MainActivity extends AppCompatActivity {
+import io.fabric.sdk.android.Fabric;
+
+import java.io.IOException;
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.Date;
+
+public class MainActivity extends AppCompatActivity implements Serializable{
+
+    public static final String TRACKING_LIST = "trackinglist";
 
     private TimePicker mTpVon, mTpBis;
-    private EditText mEtMinus;
+    private EditText mEtMinus, mEtMessage;
     private TextView mTvHours;
-    private Calendar cal1, cal2;
     private SharedPreferences sharedPreferences;
+    public static ArrayList<TrackingEntry> mTrackingEntryList;
+    private float hours, minus, hoursMinus;
+    private String sHours, sHoursMinus;
 
     @Override
     protected void onPause() {
         super.onPause();
-        finish();
     }
 
     @Override
@@ -39,10 +49,27 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         sharedPreferences = getSharedPreferences("pref", 0);
 
+        Toolbar mToolbar = (Toolbar) findViewById(R.id.toolbar_main);
+        setSupportActionBar(mToolbar);
+        getSupportActionBar().setDisplayShowTitleEnabled(false);
+        Window window = this.getWindow();
+        window.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS);
+        window.clearFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);
+        window.setStatusBarColor(getResources().getColor(R.color.TA_Blue));
+
+        mTrackingEntryList = new ArrayList<>();
+
+        try {
+            mTrackingEntryList = (ArrayList<TrackingEntry>) ObjectSerializer.deserialize(sharedPreferences.getString(TRACKING_LIST, ObjectSerializer.serialize(new ArrayList<TrackingEntry>())));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
         mTpVon = (TimePicker) findViewById(R.id.tp_von);
         mTpBis = (TimePicker) findViewById(R.id.tp_bis);
         mTvHours = (TextView) findViewById(R.id.tv_hours);
         mEtMinus = (EditText) findViewById(R.id.et_minus);
+        mEtMessage = (EditText) findViewById(R.id.et_message);
 
         mTpVon.setIs24HourView(true);
         mTpBis.setIs24HourView(true);
@@ -84,31 +111,89 @@ public class MainActivity extends AppCompatActivity {
                 getDif();
             }
         });
+
+        Button mBtnAdd = (Button) findViewById(R.id.btn_add);
+        mBtnAdd.setOnLongClickListener(new View.OnLongClickListener() {
+            @Override
+            public boolean onLongClick(View v) {
+                if(addToList(v))
+                    goToList(v);
+                return false;
+            }
+        });
     }
 
     public void getDif() {
-        cal1 = Calendar.getInstance();
+        Calendar cal1 = Calendar.getInstance();
         cal1.set(Calendar.HOUR, mTpVon.getHour());
         cal1.set(Calendar.MINUTE, mTpVon.getMinute());
         Long von = cal1.getTimeInMillis();
 
-        cal2 = Calendar.getInstance();
+        Calendar cal2 = Calendar.getInstance();
         cal2.set(Calendar.HOUR, mTpBis.getHour());
         cal2.set(Calendar.MINUTE, mTpBis.getMinute());
         Long bis = cal2.getTimeInMillis();
 
         Long dif = bis - von;
-        float hours = (float)dif/1000/60/60;
-        float hoursMinus = 0;
+        hours = (float)dif/1000/60/60;
+        hoursMinus = 0;
+        minus = -1;
         if(mEtMinus.getText().length() > 0) {
-            float minus = Float.valueOf(mEtMinus.getText().toString());
+            minus = Float.valueOf(mEtMinus.getText().toString());
             hoursMinus = hours - minus;
-            String sHours = String.format("%.2f", hours);
-            String sHoursMinus = String.format("%.2f", hoursMinus);
+            sHours = String.format("%.2f", hours);
+            sHoursMinus = String.format("%.2f", hoursMinus);
             mTvHours.setText(sHours + " - " + minus + " = " + sHoursMinus + " Stunden");
         } else {
-            String sHours = String.format("%.2f", hours);
+            sHours = String.format("%.2f", hours);
             mTvHours.setText(sHours + " Stunden");
         }
+    }
+
+    public Boolean addToList (View v) {
+        getDif();
+        String time;
+
+        String von = String.format("%02d:%02d", mTpVon.getHour(), mTpVon.getMinute());
+        String bis = String.format("%02d:%02d", mTpBis.getHour(), mTpBis.getMinute());
+        SimpleDateFormat sdf = new SimpleDateFormat("dd.MM.yyyy");
+        String currDate = sdf.format(new Date());
+
+        if(minus != -1) {
+            time = "Von: " + von + " - Bis: " + bis + "\nMinus: " + minus + " -> Zeit: " + sHoursMinus + " Stunden";
+        } else {
+            time = "Von: " + von + " - Bis: " + bis + "\nZeit: " + sHours + " Stunden";
+        }
+        String mMessage = mEtMessage.getText().toString();
+        if(mMessage.isEmpty()){
+            Toast.makeText(this, "Bitte Message eingeben", Toast.LENGTH_SHORT).show();
+        } else {
+            if (minus != -1 && hoursMinus >= 0 || minus == -1 && hours >= 0) {
+                mTrackingEntryList.add(new TrackingEntry(currDate, time, mMessage));
+                mEtMessage.setText("");
+                mEtMinus.setText("");
+                addListToPrefs();
+                Toast.makeText(this, "Zur Liste hinzugefügt", Toast.LENGTH_SHORT).show();
+                return true;
+            } else {
+                Toast.makeText(this, "Stunden sind negativ", Toast.LENGTH_SHORT).show();
+            }
+        }
+        return false;
+    }
+
+    public void addListToPrefs() {
+        SharedPreferences.Editor editor = sharedPreferences.edit();
+        try {
+            if(mTrackingEntryList!=null)
+                editor.putString(TRACKING_LIST, ObjectSerializer.serialize(mTrackingEntryList));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        editor.commit();
+    }
+    public void goToList (View v) {
+        Intent intent = new Intent(this, List.class);
+        startActivity(intent);
     }
 }
