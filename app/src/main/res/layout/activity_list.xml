@@ -22,18 +22,27 @@
 
             <TextView
                 android:id="@+id/toolbar_title"
+                style="@style/ToolbarTitle"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_gravity="center"
-                android:text="Tracked Times"
-                style="@style/ToolbarTitle"/>
+                android:text="Tracked Times" />
 
         </android.support.v7.widget.Toolbar>
     </android.support.design.widget.AppBarLayout>
 
+    <TextView
+        android:id="@+id/tv_no_entries"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:layout_gravity="center"
+        android:visibility="gone" />
+
     <android.support.v7.widget.RecyclerView
         android:id="@+id/rv_tracking"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content" />
+        android:layout_height="wrap_content"
+        android:visibility="visible" />
 
 </LinearLayout>

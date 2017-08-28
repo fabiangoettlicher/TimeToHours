@@ -28,6 +28,7 @@ import java.util.Date;
 public class MainActivity extends AppCompatActivity implements Serializable{
 
     public static final String TRACKING_LIST = "trackinglist";
+    public static final String SHARED_PREF = "prefs";
 
     private TimePicker mTpVon, mTpBis;
     private EditText mEtMinus, mEtMessage;
@@ -47,7 +48,7 @@ public class MainActivity extends AppCompatActivity implements Serializable{
         super.onCreate(savedInstanceState);
         Fabric.with(this, new Crashlytics());
         setContentView(R.layout.activity_main);
-        sharedPreferences = getSharedPreferences("pref", 0);
+        sharedPreferences = getSharedPreferences(SHARED_PREF, 0);
 
         Toolbar mToolbar = (Toolbar) findViewById(R.id.toolbar_main);
         setSupportActionBar(mToolbar);
@@ -57,13 +58,13 @@ public class MainActivity extends AppCompatActivity implements Serializable{
         window.clearFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);
         window.setStatusBarColor(getResources().getColor(R.color.TA_Blue));
 
-        mTrackingEntryList = new ArrayList<>();
-
         try {
             mTrackingEntryList = (ArrayList<TrackingEntry>) ObjectSerializer.deserialize(sharedPreferences.getString(TRACKING_LIST, ObjectSerializer.serialize(new ArrayList<TrackingEntry>())));
         } catch (IOException e) {
             e.printStackTrace();
         }
+
+        if(mTrackingEntryList==null) mTrackingEntryList = new ArrayList<>();
 
         mTpVon = (TimePicker) findViewById(R.id.tp_von);
         mTpBis = (TimePicker) findViewById(R.id.tp_bis);
@@ -183,14 +184,12 @@ public class MainActivity extends AppCompatActivity implements Serializable{
     }
 
     public void addListToPrefs() {
-        SharedPreferences.Editor editor = sharedPreferences.edit();
         try {
             if(mTrackingEntryList!=null)
-                editor.putString(TRACKING_LIST, ObjectSerializer.serialize(mTrackingEntryList));
+                sharedPreferences.edit().putString(TRACKING_LIST, ObjectSerializer.serialize(mTrackingEntryList)).apply();
         } catch (IOException e) {
             e.printStackTrace();
         }
-        editor.commit();
     }
     public void goToList (View v) {
         Intent intent = new Intent(this, List.class);

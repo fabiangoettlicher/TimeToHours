@@ -20,9 +20,8 @@ public class ObjectSerializer {
             objStream.close();
             return encodeBytes(serialObj.toByteArray());
         } catch (Exception e) {
-
+            throw new Error("Error serialize");
         }
-        return "";
     }
 
     public static Object deserialize(String str) throws IOException {
@@ -32,9 +31,8 @@ public class ObjectSerializer {
             ObjectInputStream objStream = new ObjectInputStream(serialObj);
             return objStream.readObject();
         } catch (Exception e) {
-
+            throw new Error("Error deserialize");
         }
-        return "";
     }
 
     public static String encodeBytes(byte[] bytes) {
@@ -58,5 +56,4 @@ public class ObjectSerializer {
         }
         return bytes;
     }
-
 }

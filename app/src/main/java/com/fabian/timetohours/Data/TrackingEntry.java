@@ -1,10 +1,13 @@
 package com.fabian.timetohours.Data;
 
+import java.io.Serializable;
+
 /**
  * Created by Fabian on 25.08.2017.
  */
 
-public class TrackingEntry {
+
+public class TrackingEntry implements Serializable {
     private String date;
     private String time;
     private String message;

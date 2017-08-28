@@ -24,7 +24,7 @@ public class ListAdapter extends RecyclerView.Adapter<ListAdapter.ViewHolderClas
 
     public class ViewHolderClass extends RecyclerView.ViewHolder {
 
-        TextView mTvTime, mTvMessage, mTvDate;
+        private TextView mTvTime, mTvMessage, mTvDate;
 
         public ViewHolderClass(View itemView) {
             super(itemView);
